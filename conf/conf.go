@@ -7,8 +7,7 @@ import (
 )
 
 var (
-	GConfig  *Config
-	edsHosts []string
+	GConfig *Config
 )
 
 const TimeFormat = "2006-01-02 15:04:05"
@@ -78,7 +77,7 @@ func init() {
 }
 
 func Init() {
-	flag.StringVar(&GConfig.ESAddr, "es.host", "", "es host")
+	flag.StringVar(&GConfig.ESAddr, "es.host", "http://127.0.0.1:9200", "es host")
 	flag.StringVar(&GConfig.ESUsername, "es.username", "", "es username")
 	flag.StringVar(&GConfig.ESPassword, "es.password", "", "es password")
 	flag.StringVar(&GConfig.ChaosAddr, "chaos.host", "http://srechaos.devops.xiaohongshu.com", "chaos host")

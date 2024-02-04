@@ -16,10 +16,12 @@ import (
 )
 
 func main() {
+	conf.Init()
 	leaderCond := sync.NewCond(&sync.Mutex{})
 	slaveCond := sync.NewCond(&sync.Mutex{})
 	c, cancel := context.WithCancel(context.Background())
 	service.Init(c, leaderCond, slaveCond)
+	log.SetFlags(log.Llongfile | log.Ldate)
 
 	go func() {
 		lock := locker.NewLocker(locker.Config{

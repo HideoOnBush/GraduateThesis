@@ -26,7 +26,6 @@ end`
 	if err == redis.Nil {
 		return false, nil
 	} else if err != nil {
-		log.SetFlags(log.Llongfile | log.Ldate)
 		log.Printf("获取锁时报错, k=v: %s=%v, err: %s\n", key, value, err.Error())
 		return false, err
 	} else if val == nil {
