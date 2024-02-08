@@ -8,6 +8,7 @@ require (
 	github.com/apache/thrift v0.13.1-0.20200413161103-81334cd7345d
 	github.com/cloudwego/hertz v0.8.0
 	github.com/go-redis/redis/v8 v8.11.5
+	github.com/json-iterator/go v1.1.12
 	github.com/olivere/elastic/v7 v7.0.32
 )
 
@@ -26,6 +27,8 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
+	github.com/modern-go/concurrent v0.0.0-20180228061459-e0a39a4cb421 // indirect
+	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/nyaruka/phonenumbers v1.0.55 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/tidwall/gjson v1.14.4 // indirect
