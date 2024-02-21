@@ -9,6 +9,7 @@ require (
 	github.com/cloudwego/hertz v0.8.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/json-iterator/go v1.1.12
+	github.com/neo4j/neo4j-go-driver/v5 v5.17.0
 	github.com/olivere/elastic/v7 v7.0.32
 )
 
