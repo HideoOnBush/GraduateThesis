@@ -29,17 +29,23 @@ type MysqlServiceConfig struct {
 }
 
 type Config struct {
-	Neo4jAddr      string
-	Neo4jUsername  string
-	Neo4jPassword  string
-	ESAddr         string
-	ESUsername     string
-	ESPassword     string
-	RocketMqServer string
-	RedisAddr      string
-	RedisPassword  string
-	RedisDB        int
-	Mysql          MysqlServiceConfig
+	RedHaLeader          string
+	RabbitConCurrencyNum string
+	RabbitMqAddr         string
+	RabbitMqPort         string
+	RabbitMqUser         string
+	RabbitMqPwd          string
+	Neo4jAddr            string
+	Neo4jUsername        string
+	Neo4jPassword        string
+	ESAddr               string
+	ESUsername           string
+	ESPassword           string
+	RocketMqServer       string
+	RedisAddr            string
+	RedisPassword        string
+	RedisDB              int
+	Mysql                MysqlServiceConfig
 }
 
 func init() {
@@ -47,6 +53,12 @@ func init() {
 }
 
 func Init() {
+	flag.StringVar(&GConfig.RedHaLeader, "redha.leader", "redha-leader", "redha leader")
+	flag.StringVar(&GConfig.RabbitConCurrencyNum, "rabbitmq.concurrency", "1", "rabbitmq.concurrency")
+	flag.StringVar(&GConfig.RabbitMqAddr, "rabbitmq.addr", "127.0.0.1", "rabbitmq.addr")
+	flag.StringVar(&GConfig.RabbitMqPort, "rabbitmq.port", "5672", "rabbitmq.port")
+	flag.StringVar(&GConfig.RabbitMqUser, "rabbitmq.user", "kwq", "rabbitmq.user")
+	flag.StringVar(&GConfig.RabbitMqPwd, "rabbitmq.pwd", "123456", "rabbitmq.pwd")
 	flag.StringVar(&GConfig.Neo4jAddr, "neo.host", "neo4j://127.0.0.1", "neo host")
 	flag.StringVar(&GConfig.Neo4jUsername, "neo.username", "neo4j", "neo username")
 	flag.StringVar(&GConfig.Neo4jPassword, "neo.password", "12345678", "neo password")

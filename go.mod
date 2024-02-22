@@ -11,6 +11,7 @@ require (
 	github.com/json-iterator/go v1.1.12
 	github.com/neo4j/neo4j-go-driver/v5 v5.17.0
 	github.com/olivere/elastic/v7 v7.0.32
+	github.com/rabbitmq/amqp091-go v1.9.0
 )
 
 require (

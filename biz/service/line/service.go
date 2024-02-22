@@ -23,6 +23,7 @@ type Line struct {
 
 func New(ctx context.Context, base base.Base) *Line {
 	line := &Line{Base: base}
+	go line.InitializeConsumers()
 	return line
 }
 

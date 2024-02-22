@@ -20,12 +20,20 @@ var (
 func _init() {
 	once.Do(func() {
 		conf.GConfig = &conf.Config{
-			RedisAddr:     "127.0.0.1:6379",
-			RedisPassword: "",
-			RedisDB:       1,
-			ESAddr:        "http://127.0.0.1:9200",
-			ESUsername:    "",
-			ESPassword:    "",
+			Neo4jAddr:            "neo4j://127.0.0.1",
+			Neo4jUsername:        "neo4j",
+			Neo4jPassword:        "12345678",
+			RabbitConCurrencyNum: "1",
+			RabbitMqAddr:         "127.0.0.1",
+			RabbitMqPort:         "5672",
+			RabbitMqUser:         "kwq",
+			RabbitMqPwd:          "123456",
+			RedisAddr:            "127.0.0.1:6379",
+			RedisPassword:        "",
+			RedisDB:              1,
+			ESAddr:               "http://127.0.0.1:9200",
+			ESUsername:           "",
+			ESPassword:           "",
 		}
 		b.Init(conf.GConfig)
 		line = *New(context.Background(), b)
@@ -128,12 +136,19 @@ func TestLine_TopologyAnalyse(t *testing.T) {
 	req := lineModel.TopologyIndicatorReq{
 		Scene: "test",
 	}
-	t.Run("Query", func(t *testing.T) {
+	t.Run("TopologyAnalyse", func(t *testing.T) {
 		ok, indicator := line.TopologyAnalyse(context.TODO(), &req)
 		t.Log(ok)
 		if ok {
 			data, _ := jsoniter.MarshalIndent(indicator, "", " ")
 			t.Log(string(data))
 		}
+	})
+}
+
+func TestLine_InitializeConsumers(t *testing.T) {
+	_init()
+	t.Run("InitializeConsumers", func(t *testing.T) {
+		line.InitializeConsumers()
 	})
 }

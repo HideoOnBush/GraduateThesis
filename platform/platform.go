@@ -4,6 +4,7 @@ import (
 	"GraduateThesis/conf"
 	"GraduateThesis/platform/es"
 	"GraduateThesis/platform/neo"
+	"GraduateThesis/platform/rabbitmq"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/olivere/elastic/v7"
 	"log"
@@ -15,8 +16,9 @@ var (
 )
 
 type Platform struct {
-	ES    *elastic.Client
-	NEO4J *neo4j.DriverWithContext
+	ES       *elastic.Client
+	NEO4J    *neo4j.DriverWithContext
+	RABBITMQ *rabbitmq.Connection
 }
 
 func (p *Platform) Init(c *conf.Config) {
@@ -41,6 +43,18 @@ func (p *Platform) Init(c *conf.Config) {
 		os.Exit(1)
 	} else {
 		p.NEO4J = NEO4JClient
+	}
+	RABBITMQClient, err := rabbitmq.Init(rabbitmq.Conf{
+		Addr: c.RabbitMqAddr,
+		Port: c.RabbitMqPort,
+		User: c.RabbitMqUser,
+		Pwd:  c.RabbitMqPwd,
+	})
+	if err != nil {
+		log.Println(err.Error())
+		os.Exit(1)
+	} else {
+		p.RABBITMQ = RABBITMQClient
 	}
 }
 
