@@ -6,8 +6,6 @@ import (
 	base "GraduateThesis/biz/router/base"
 	line "GraduateThesis/biz/router/line"
 	neoNode "GraduateThesis/biz/router/neoNode"
-	neo_node "GraduateThesis/biz/router/neoNode"
-	node "GraduateThesis/biz/router/node"
 	"github.com/cloudwego/hertz/pkg/app/server"
 )
 
@@ -16,11 +14,7 @@ func GeneratedRegister(r *server.Hertz) {
 	//INSERT_POINT: DO NOT DELETE THIS LINE!
 	neoNode.Register(r)
 
-	neo_node.Register(r)
-
 	line.Register(r)
-
-	node.Register(r)
 
 	base.Register(r)
 
