@@ -10,262 +10,9 @@ import (
 
 type Timestamp = int64
 
-type Result struct {
-	Success bool    `thrift:"success,1,required" form:"success,required" json:"success,required" query:"success,required"`
-	Code    *int64  `thrift:"code,2,optional" form:"code" json:"code,omitempty" query:"code"`
-	Message *string `thrift:"message,3,optional" form:"message" json:"message,omitempty" query:"message"`
-}
-
-func NewResult() *Result {
-	return &Result{}
-}
-
-func (p *Result) GetSuccess() (v bool) {
-	return p.Success
-}
-
-var Result_Code_DEFAULT int64
-
-func (p *Result) GetCode() (v int64) {
-	if !p.IsSetCode() {
-		return Result_Code_DEFAULT
-	}
-	return *p.Code
-}
-
-var Result_Message_DEFAULT string
-
-func (p *Result) GetMessage() (v string) {
-	if !p.IsSetMessage() {
-		return Result_Message_DEFAULT
-	}
-	return *p.Message
-}
-
-var fieldIDToName_Result = map[int16]string{
-	1: "success",
-	2: "code",
-	3: "message",
-}
-
-func (p *Result) IsSetCode() bool {
-	return p.Code != nil
-}
-
-func (p *Result) IsSetMessage() bool {
-	return p.Message != nil
-}
-
-func (p *Result) Read(iprot thrift.TProtocol) (err error) {
-
-	var fieldTypeId thrift.TType
-	var fieldId int16
-	var issetSuccess bool = false
-
-	if _, err = iprot.ReadStructBegin(); err != nil {
-		goto ReadStructBeginError
-	}
-
-	for {
-		_, fieldTypeId, fieldId, err = iprot.ReadFieldBegin()
-		if err != nil {
-			goto ReadFieldBeginError
-		}
-		if fieldTypeId == thrift.STOP {
-			break
-		}
-
-		switch fieldId {
-		case 1:
-			if fieldTypeId == thrift.BOOL {
-				if err = p.ReadField1(iprot); err != nil {
-					goto ReadFieldError
-				}
-				issetSuccess = true
-			} else if err = iprot.Skip(fieldTypeId); err != nil {
-				goto SkipFieldError
-			}
-		case 2:
-			if fieldTypeId == thrift.I64 {
-				if err = p.ReadField2(iprot); err != nil {
-					goto ReadFieldError
-				}
-			} else if err = iprot.Skip(fieldTypeId); err != nil {
-				goto SkipFieldError
-			}
-		case 3:
-			if fieldTypeId == thrift.STRING {
-				if err = p.ReadField3(iprot); err != nil {
-					goto ReadFieldError
-				}
-			} else if err = iprot.Skip(fieldTypeId); err != nil {
-				goto SkipFieldError
-			}
-		default:
-			if err = iprot.Skip(fieldTypeId); err != nil {
-				goto SkipFieldError
-			}
-		}
-		if err = iprot.ReadFieldEnd(); err != nil {
-			goto ReadFieldEndError
-		}
-	}
-	if err = iprot.ReadStructEnd(); err != nil {
-		goto ReadStructEndError
-	}
-
-	if !issetSuccess {
-		fieldId = 1
-		goto RequiredFieldNotSetError
-	}
-	return nil
-ReadStructBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T read struct begin error: ", p), err)
-ReadFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d begin error: ", p, fieldId), err)
-ReadFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T read field %d '%s' error: ", p, fieldId, fieldIDToName_Result[fieldId]), err)
-SkipFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T field %d skip type %d error: ", p, fieldId, fieldTypeId), err)
-
-ReadFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T read field end error", p), err)
-ReadStructEndError:
-	return thrift.PrependError(fmt.Sprintf("%T read struct end error: ", p), err)
-RequiredFieldNotSetError:
-	return thrift.NewTProtocolExceptionWithType(thrift.INVALID_DATA, fmt.Errorf("required field %s is not set", fieldIDToName_Result[fieldId]))
-}
-
-func (p *Result) ReadField1(iprot thrift.TProtocol) error {
-
-	if v, err := iprot.ReadBool(); err != nil {
-		return err
-	} else {
-		p.Success = v
-	}
-	return nil
-}
-func (p *Result) ReadField2(iprot thrift.TProtocol) error {
-
-	if v, err := iprot.ReadI64(); err != nil {
-		return err
-	} else {
-		p.Code = &v
-	}
-	return nil
-}
-func (p *Result) ReadField3(iprot thrift.TProtocol) error {
-
-	if v, err := iprot.ReadString(); err != nil {
-		return err
-	} else {
-		p.Message = &v
-	}
-	return nil
-}
-
-func (p *Result) Write(oprot thrift.TProtocol) (err error) {
-	var fieldId int16
-	if err = oprot.WriteStructBegin("Result"); err != nil {
-		goto WriteStructBeginError
-	}
-	if p != nil {
-		if err = p.writeField1(oprot); err != nil {
-			fieldId = 1
-			goto WriteFieldError
-		}
-		if err = p.writeField2(oprot); err != nil {
-			fieldId = 2
-			goto WriteFieldError
-		}
-		if err = p.writeField3(oprot); err != nil {
-			fieldId = 3
-			goto WriteFieldError
-		}
-	}
-	if err = oprot.WriteFieldStop(); err != nil {
-		goto WriteFieldStopError
-	}
-	if err = oprot.WriteStructEnd(); err != nil {
-		goto WriteStructEndError
-	}
-	return nil
-WriteStructBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write struct begin error: ", p), err)
-WriteFieldError:
-	return thrift.PrependError(fmt.Sprintf("%T write field %d error: ", p, fieldId), err)
-WriteFieldStopError:
-	return thrift.PrependError(fmt.Sprintf("%T write field stop error: ", p), err)
-WriteStructEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write struct end error: ", p), err)
-}
-
-func (p *Result) writeField1(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("success", thrift.BOOL, 1); err != nil {
-		goto WriteFieldBeginError
-	}
-	if err := oprot.WriteBool(p.Success); err != nil {
-		return err
-	}
-	if err = oprot.WriteFieldEnd(); err != nil {
-		goto WriteFieldEndError
-	}
-	return nil
-WriteFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 1 begin error: ", p), err)
-WriteFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 1 end error: ", p), err)
-}
-
-func (p *Result) writeField2(oprot thrift.TProtocol) (err error) {
-	if p.IsSetCode() {
-		if err = oprot.WriteFieldBegin("code", thrift.I64, 2); err != nil {
-			goto WriteFieldBeginError
-		}
-		if err := oprot.WriteI64(*p.Code); err != nil {
-			return err
-		}
-		if err = oprot.WriteFieldEnd(); err != nil {
-			goto WriteFieldEndError
-		}
-	}
-	return nil
-WriteFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 2 begin error: ", p), err)
-WriteFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 2 end error: ", p), err)
-}
-
-func (p *Result) writeField3(oprot thrift.TProtocol) (err error) {
-	if p.IsSetMessage() {
-		if err = oprot.WriteFieldBegin("message", thrift.STRING, 3); err != nil {
-			goto WriteFieldBeginError
-		}
-		if err := oprot.WriteString(*p.Message); err != nil {
-			return err
-		}
-		if err = oprot.WriteFieldEnd(); err != nil {
-			goto WriteFieldEndError
-		}
-	}
-	return nil
-WriteFieldBeginError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 3 begin error: ", p), err)
-WriteFieldEndError:
-	return thrift.PrependError(fmt.Sprintf("%T write field 3 end error: ", p), err)
-}
-
-func (p *Result) String() string {
-	if p == nil {
-		return "<nil>"
-	}
-	return fmt.Sprintf("Result(%+v)", *p)
-
-}
-
 type SampleResp struct {
 	Code    int64  `thrift:"code,1,required" form:"code,required" json:"code,required" query:"code,required"`
-	Data    bool   `thrift:"data,2,required" form:"data,required" json:"data,required" query:"data,required"`
+	Success bool   `thrift:"success,2,required" form:"success,required" json:"success,required" query:"success,required"`
 	Message string `thrift:"message,3,required" form:"message,required" json:"message,required" query:"message,required"`
 }
 
@@ -277,8 +24,8 @@ func (p *SampleResp) GetCode() (v int64) {
 	return p.Code
 }
 
-func (p *SampleResp) GetData() (v bool) {
-	return p.Data
+func (p *SampleResp) GetSuccess() (v bool) {
+	return p.Success
 }
 
 func (p *SampleResp) GetMessage() (v string) {
@@ -287,7 +34,7 @@ func (p *SampleResp) GetMessage() (v string) {
 
 var fieldIDToName_SampleResp = map[int16]string{
 	1: "code",
-	2: "data",
+	2: "success",
 	3: "message",
 }
 
@@ -296,7 +43,7 @@ func (p *SampleResp) Read(iprot thrift.TProtocol) (err error) {
 	var fieldTypeId thrift.TType
 	var fieldId int16
 	var issetCode bool = false
-	var issetData bool = false
+	var issetSuccess bool = false
 	var issetMessage bool = false
 
 	if _, err = iprot.ReadStructBegin(); err != nil {
@@ -327,7 +74,7 @@ func (p *SampleResp) Read(iprot thrift.TProtocol) (err error) {
 				if err = p.ReadField2(iprot); err != nil {
 					goto ReadFieldError
 				}
-				issetData = true
+				issetSuccess = true
 			} else if err = iprot.Skip(fieldTypeId); err != nil {
 				goto SkipFieldError
 			}
@@ -358,7 +105,7 @@ func (p *SampleResp) Read(iprot thrift.TProtocol) (err error) {
 		goto RequiredFieldNotSetError
 	}
 
-	if !issetData {
+	if !issetSuccess {
 		fieldId = 2
 		goto RequiredFieldNotSetError
 	}
@@ -399,7 +146,7 @@ func (p *SampleResp) ReadField2(iprot thrift.TProtocol) error {
 	if v, err := iprot.ReadBool(); err != nil {
 		return err
 	} else {
-		p.Data = v
+		p.Success = v
 	}
 	return nil
 }
@@ -467,10 +214,10 @@ WriteFieldEndError:
 }
 
 func (p *SampleResp) writeField2(oprot thrift.TProtocol) (err error) {
-	if err = oprot.WriteFieldBegin("data", thrift.BOOL, 2); err != nil {
+	if err = oprot.WriteFieldBegin("success", thrift.BOOL, 2); err != nil {
 		goto WriteFieldBeginError
 	}
-	if err := oprot.WriteBool(p.Data); err != nil {
+	if err := oprot.WriteBool(p.Success); err != nil {
 		return err
 	}
 	if err = oprot.WriteFieldEnd(); err != nil {

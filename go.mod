@@ -8,6 +8,7 @@ require (
 	github.com/apache/thrift v0.13.1-0.20200413161103-81334cd7345d
 	github.com/cloudwego/hertz v0.8.0
 	github.com/go-redis/redis/v8 v8.11.5
+	github.com/go-resty/resty/v2 v2.11.0
 	github.com/json-iterator/go v1.1.12
 	github.com/neo4j/neo4j-go-driver/v5 v5.17.0
 	github.com/olivere/elastic/v7 v7.0.32
@@ -38,6 +39,7 @@ require (
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	golang.org/x/arch v0.0.0-20210923205945-b76863e36670 // indirect
-	golang.org/x/sys v0.0.0-20220412211240-33da011f77ad // indirect
+	golang.org/x/net v0.17.0 // indirect
+	golang.org/x/sys v0.13.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 )

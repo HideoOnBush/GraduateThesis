@@ -45,6 +45,16 @@ func (n *NeoNode) MergeNode(ctx context.Context, nodes []map[string]any) bool {
 	return true
 }
 
+func (n *NeoNode) DeleteAllNodes(ctx context.Context) error {
+	deleteQueryString := "MATCH (n) DETACH DELETE n"
+	_, err := neo4j.ExecuteQuery(ctx, *n.NEO4J, deleteQueryString, nil, neo4j.EagerResultTransformer, neo4j.ExecuteQueryWithDatabase("neo4j"))
+	if err != nil {
+		log.Printf("Failed to delete all nodes from Neo4j, error: %s", err.Error())
+		return err
+	}
+	return nil
+}
+
 func (n *NeoNode) EsToNeo(ctx context.Context, req *lineModel.LineReq) error {
 	c := &app.RequestContext{}
 	lines, total := n.Line.Query(ctx, c, req)

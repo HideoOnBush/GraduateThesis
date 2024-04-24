@@ -24,6 +24,7 @@ func Register(r *server.Hertz) {
 			_line.POST("/bulk", append(_bulkMw(), line.Bulk)...)
 			_line.POST("/change-dependence", append(_changedependenceMw(), line.ChangeDependence)...)
 			_line.POST("/delete", append(_deleteMw(), line.Delete)...)
+			_line.GET("/get_rank", append(_getrankMw(), line.GetRank)...)
 			_line.GET("/query", append(_queryMw(), line.Query)...)
 			_line.POST("/topology_analyse", append(_topologyanalyseMw(), line.TopologyAnalyse)...)
 		}

@@ -60,7 +60,7 @@ func ChangeDependence(ctx context.Context, c *app.RequestContext) {
 	if len(c.Errors) > 0 {
 		c.JSON(http.StatusInternalServerError, baseModel.SampleResp{
 			Code:    1,
-			Data:    false,
+			Success: false,
 			Message: c.Errors.String(),
 		})
 	}
@@ -69,9 +69,9 @@ func ChangeDependence(ctx context.Context, c *app.RequestContext) {
 
 	if result == false {
 		resp.Code = 1
-		resp.Data = false
+		resp.Success = false
 	} else {
-		resp.Data = true
+		resp.Success = true
 		resp.Code = 0
 		resp.Message = ""
 	}
@@ -101,7 +101,7 @@ func Bulk(ctx context.Context, c *app.RequestContext) {
 		}
 	}
 	resp.Code = 0
-	resp.Data = true
+	resp.Success = true
 	resp.Message = ""
 
 	c.JSON(consts.StatusOK, resp)
@@ -125,9 +125,9 @@ func Delete(ctx context.Context, c *app.RequestContext) {
 	resp := new(baseModel.SampleResp)
 	if result == false {
 		resp.Code = 1
-		resp.Data = false
+		resp.Success = false
 	} else {
-		resp.Data = true
+		resp.Success = true
 		resp.Code = 0
 		resp.Message = ""
 	}
@@ -158,5 +158,30 @@ func TopologyAnalyse(ctx context.Context, c *app.RequestContext) {
 		resp.Code = 0
 	}
 
+	c.JSON(consts.StatusOK, resp)
+}
+
+// GetRank .
+// @router /api/line/get_rank [GET]
+func GetRank(ctx context.Context, c *app.RequestContext) {
+	var err error
+	var req lineModel.GetRankReq
+	err = c.BindAndValidate(&req)
+	if err != nil {
+		c.String(consts.StatusBadRequest, err.Error())
+		return
+	}
+
+	resp := new(lineModel.GetRankResp)
+	data, err := service.Line.GetRank(ctx, req.GetScene())
+	if err != nil {
+		resp.Data = nil
+		resp.Message = err.Error()
+		resp.Code = 1
+	} else {
+		resp.Data = data
+		resp.Message = ""
+		resp.Code = 0
+	}
 	c.JSON(consts.StatusOK, resp)
 }

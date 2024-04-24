@@ -5,6 +5,7 @@ import (
 	"GraduateThesis/platform/es"
 	"GraduateThesis/platform/neo"
 	"GraduateThesis/platform/rabbitmq"
+	"GraduateThesis/platform/spark"
 	"github.com/neo4j/neo4j-go-driver/v5/neo4j"
 	"github.com/olivere/elastic/v7"
 	"log"
@@ -19,6 +20,7 @@ type Platform struct {
 	ES       *elastic.Client
 	NEO4J    *neo4j.DriverWithContext
 	RABBITMQ *rabbitmq.Connection
+	SPARK    *spark.SparkClient
 }
 
 func (p *Platform) Init(c *conf.Config) {
@@ -56,6 +58,9 @@ func (p *Platform) Init(c *conf.Config) {
 	} else {
 		p.RABBITMQ = RABBITMQClient
 	}
+	p.SPARK = spark.New(spark.Config{
+		Host: c.SparkHost,
+	})
 }
 
 func Init(c *conf.Config) {

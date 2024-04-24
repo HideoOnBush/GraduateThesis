@@ -4,6 +4,7 @@ import (
 	model "GraduateThesis/biz/model/line"
 	"GraduateThesis/biz/service/base"
 	"GraduateThesis/platform/es"
+	"GraduateThesis/platform/spark"
 	"bytes"
 	"container/list"
 	"context"
@@ -25,6 +26,73 @@ func New(ctx context.Context, base base.Base) *Line {
 	line := &Line{Base: base}
 	go line.InitializeConsumers()
 	return line
+}
+
+func (l *Line) GetRank(ctx context.Context, scene string) (lines []*model.LineRank, err error) {
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	defer cancel()
+	resp := l.SPARK.SparkCreateMission(ctx, spark.SubmitMissionReq{
+		Action:               "CreateSubmissionRequest",
+		AppArgs:              []string{"main.py"},
+		AppResource:          "hdfs://namenode:9000/input/main.py",
+		ClientSparkVersion:   "2.4.3",
+		EnvironmentVariables: spark.EnvironmentVariables{SparkEnvLoaded: "1"},
+		MainClass:            "org.apache.spark.deploy.SparkSubmit",
+		SparkProperties: spark.SparkProperties{
+			SparkDriverSupervise:  "false",
+			SparkAppName:          "Simple App",
+			SparkEventLogEnabled:  "false",
+			SparkSubmitDeployMode: "client",
+			SparkMaster:           "spark://master:4040",
+			SparkJars:             "hdfs://namenode:9000/input/elasticsearch-hadoop-8.12.2.jar",
+			SparkEsResource:       l.SceneToIndex(scene),
+		},
+	})
+	if resp.Success == false {
+		err = errors.New(fmt.Sprintf("SparkCreateMission in GetRank failed,err=%v", resp.Message))
+		return
+	}
+	var ch chan struct{} = make(chan struct{})
+	defer close(ch)
+	go func() {
+		t := time.NewTicker(1 * time.Second)
+		for _ = range t.C {
+			result := l.SPARK.SparkCheckMission(ctx, spark.CheckMissionReq{SubmissionId: resp.SubmissionId})
+			switch result.DriverState {
+			case spark.DriverFailedStatus:
+				log.Printf("submission failed,id=%s", resp.SubmissionId)
+				return
+			case spark.DriverRunningStatus:
+				continue
+			case spark.DriverSuccessStatus:
+				ch <- struct{}{}
+				return
+			}
+		}
+	}()
+	select {
+	case <-ch:
+		var rankLines []*model.SparkResult
+		var num int
+		rankLines, num, err = l.SparkQuery(context.Background(), spark.SparkIndex)
+		if err != nil {
+			return
+		}
+		if num == 0 {
+			err = errors.New("SparkQuery in GetRank get 0 data")
+			return
+		}
+		for i, l := range rankLines {
+			lines = append(lines, &model.LineRank{
+				Name: l.GetName(),
+				Rank: int64(i) + 1,
+			})
+		}
+		return
+	case <-ctx.Done():
+		err = errors.New("time out, please wait more or something went wrong")
+		return
+	}
 }
 
 func (l *Line) GetIndex() []string {
@@ -84,6 +152,32 @@ func (l *Line) search(ctx context.Context, filter *Filter, index string) (lines 
 	searchFilter.Sorters = append(searchFilter.Sorters, elastic.NewFieldSort("source").Asc(), elastic.NewFieldSort("target").Asc())
 
 	lines, totalCount, err = l.searchWithSearcher(ctx, searchFilter, index)
+	return
+}
+
+func (l *Line) SparkQuery(ctx context.Context, index string) (RankLines []*model.SparkResult, totalCount int, err error) {
+	exist, err := l.ExistsIndex(ctx, index)
+	if err != nil {
+		err = errors.New(fmt.Sprintf("ExistsIndex in SparkQuery failed,err=%v", err))
+		return
+	}
+	if !exist {
+		err = errors.New(fmt.Sprintf("查询index错误或者不存在"))
+		return
+	}
+	searchResult, err := l.ES.Search().Index(index).Do(ctx)
+	if err != nil {
+		err = errors.New(fmt.Sprintf("Error searching in SparkQuery:%v", err))
+		return
+	}
+	if searchResult.Hits.TotalHits.Value > 0 {
+		totalCount = int(searchResult.Hits.TotalHits.Value)
+		for _, hit := range searchResult.Hits.Hits {
+			RankLine := model.SparkResult{}
+			_ = json.Unmarshal(hit.Source, &RankLine)
+			RankLines = append(RankLines, &RankLine)
+		}
+	}
 	return
 }
 
@@ -171,7 +265,7 @@ func (l *Line) ExistsScene(ctx context.Context, sceneName string) (bool, error) 
 
 func (l *Line) Bulk(ctx context.Context, lines []*model.Line) (err error) {
 	bulkRequest := l.ES.Bulk().Refresh("true")
-	now := time.Now().Unix()
+	now := time.Now().UTC().Unix()
 	for _, line := range lines {
 		GenerateLineDocId(line)
 		if line.GetFirstFoundTime() == 0 {
@@ -199,31 +293,49 @@ func (l *Line) Bulk(ctx context.Context, lines []*model.Line) (err error) {
 			} else {
 				index = l.SceneToIndex(sceneName)
 			}
+			script := elastic.NewScriptInline(`
+			ctx._source.source = params.source;
+			ctx._source.sourceIsCore = params.sourceIsCore;
+			ctx._source.sourceScene = params.sourceScene;
+			ctx._source.target = params.target;
+			ctx._source.targetIsCore = params.targetIsCore;
+			ctx._source.targetScene = params.targetScene;
+			ctx._source.dependence = params.dependence;
+			ctx._source.lastFoundTime = params.lastFoundTime;
+			ctx._source.firstFoundTime = params.firstFoundTime;
+			if (ctx._source.visitCount != null) {
+				ctx._source.visitCount += params.visitCount;
+			} else {
+				ctx._source.visitCount = params.visitCount;
+			}
+			`).Params(map[string]interface{}{
+				"source":         line.GetSource(),
+				"sourceIsCore":   line.GetSourceIsCore(),
+				"sourceScene":    line.GetSourceScene(),
+				"target":         line.GetTarget(),
+				"targetIsCore":   line.GetTargetIsCore(),
+				"targetScene":    line.GetTargetScene(),
+				"dependence":     line.GetDependence(),
+				"lastFoundTime":  line.GetLastFoundTime(),
+				"firstFoundTime": line.GetFirstFoundTime(),
+				"visitCount":     line.GetVisitCount(),
+			})
 			doc := elastic.NewBulkUpdateRequest().
 				Index(index).
 				Id(line.GetDocId()).
-				Doc(struct {
-					Source         string `thrift:"source,5" json:"source" form:"source" query:"source"`
-					SourceIsCore   bool   `thrift:"sourceIsCore,6" json:"sourceIsCore" form:"sourceIsCore" query:"sourceIsCore"`
-					SourceScene    string `thrift:"sourceScene,7" json:"sourceScene" form:"sourceScene" query:"sourceScene"`
-					Target         string `thrift:"target,8" json:"target" form:"target" query:"target"`
-					TargetIsCore   bool   `thrift:"targetIsCore,9" json:"targetIsCore" form:"targetIsCore" query:"targetIsCore"`
-					TargetScene    string `thrift:"targetScene,10" json:"targetScene" form:"targetScene" query:"targetScene"`
-					Dependence     string `thrift:"dependence,11" json:"dependence" form:"dependence" query:"dependence"`
-					LastFoundTime  int64  `thrift:"lastFoundTime,12" json:"lastFoundTime" form:"lastFoundTime" query:"lastFoundTime"`
-					FirstFoundTime int64  `thrift:"firstFoundTime,13" json:"firstFoundTime" form:"firstFoundTime" query:"firstFoundTime"`
-				}{
-					Source:         line.GetSource(),
-					SourceIsCore:   line.GetSourceIsCore(),
-					SourceScene:    line.GetSourceScene(),
-					Target:         line.GetTarget(),
-					TargetIsCore:   line.GetTargetIsCore(),
-					TargetScene:    line.GetTargetScene(),
-					Dependence:     line.GetDependence(),
-					LastFoundTime:  line.GetLastFoundTime(),
-					FirstFoundTime: line.GetFirstFoundTime(),
-				}).
-				DocAsUpsert(true)
+				Script(script).
+				Upsert(map[string]interface{}{
+					"source":         line.GetSource(),
+					"sourceIsCore":   line.GetSourceIsCore(),
+					"sourceScene":    line.GetSourceScene(),
+					"target":         line.GetTarget(),
+					"targetIsCore":   line.GetTargetIsCore(),
+					"targetScene":    line.GetTargetScene(),
+					"dependence":     line.GetDependence(),
+					"lastFoundTime":  line.GetLastFoundTime(),
+					"firstFoundTime": line.GetFirstFoundTime(),
+					"visitCount":     line.GetVisitCount(),
+				})
 			bulkRequest.Add(doc)
 		}
 	}
@@ -653,7 +765,27 @@ func (l *Line) TopologyAnalyse(ctx context.Context, req *model.TopologyIndicator
 	relations := make(map[string][]string)
 	inDegree := make(map[string]int)
 	//initialize the status
+	strongNum, coreNum, nodeNum, relationNum := 0, 0, 0, 0
+	nodeMap := make(map[string]struct{})
 	for _, line := range lines {
+		relationNum++
+		if line.Dependence == "strong" {
+			strongNum++
+		}
+		if _, ex := nodeMap[line.Source]; !ex {
+			nodeMap[line.Source] = struct{}{}
+			if line.SourceIsCore {
+				coreNum++
+			}
+			nodeNum++
+		}
+		if _, ex := nodeMap[line.Target]; !ex {
+			nodeMap[line.Target] = struct{}{}
+			if line.TargetIsCore {
+				coreNum++
+			}
+			nodeNum++
+		}
 		inDegree[line.GetSource()] = 0
 		inDegree[line.GetTarget()] = 0
 	}
@@ -683,5 +815,9 @@ func (l *Line) TopologyAnalyse(ctx context.Context, req *model.TopologyIndicator
 	} else {
 		resp.IsCycle = true
 	}
+	resp.RelationsNum = int64(relationNum)
+	resp.CoreServicesNum = int64(coreNum)
+	resp.ServicesNum = int64(nodeNum)
+	resp.StrongRelationsNum = int64(strongNum)
 	return true, resp
 }

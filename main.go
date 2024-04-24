@@ -53,10 +53,10 @@ func main() {
 					log.Println("抢锁报错")
 				}
 				if result {
-					log.Println("抢锁成功，成为leader")
+					//log.Println("抢锁成功，成为leader")
 					leaderCond.Broadcast()
 				} else {
-					log.Println("抢锁失败，成为slave")
+					//log.Println("抢锁失败，成为slave")
 					slaveCond.Broadcast()
 				}
 			}

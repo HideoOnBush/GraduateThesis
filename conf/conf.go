@@ -29,6 +29,7 @@ type MysqlServiceConfig struct {
 }
 
 type Config struct {
+	SparkHost            string
 	RedHaLeader          string
 	RabbitConCurrencyNum string
 	RabbitMqAddr         string
@@ -53,6 +54,7 @@ func init() {
 }
 
 func Init() {
+	flag.StringVar(&GConfig.SparkHost, "spark.host", "http://127.0.0.1:4040", "spark host")
 	flag.StringVar(&GConfig.RedHaLeader, "redha.leader", "redha-leader", "redha leader")
 	flag.StringVar(&GConfig.RabbitConCurrencyNum, "rabbitmq.concurrency", "1", "rabbitmq.concurrency")
 	flag.StringVar(&GConfig.RabbitMqAddr, "rabbitmq.addr", "127.0.0.1", "rabbitmq.addr")
@@ -65,15 +67,9 @@ func Init() {
 	flag.StringVar(&GConfig.ESAddr, "es.host", "http://127.0.0.1:9200", "es host")
 	flag.StringVar(&GConfig.ESUsername, "es.username", "", "es username")
 	flag.StringVar(&GConfig.ESPassword, "es.password", "", "es password")
-	flag.StringVar(&GConfig.RocketMqServer, "rocketmq.server", "10.4.44.168:9876", "rocketmq server")
 	flag.StringVar(&GConfig.RedisAddr, "redis.addr", "127.0.0.1:6379", "redis addr")
 	flag.StringVar(&GConfig.RedisPassword, "redis.password", "", "redis password")
 	flag.IntVar(&GConfig.RedisDB, "redis.db", 1, "redis db")
-	flag.StringVar(&GConfig.Mysql.User, "mysql.user", "redha_rw", "mysql user")
-	flag.StringVar(&GConfig.Mysql.Password, "mysql.password", "kXfkW0Mc5fWU6J*V", "mysql password")
-	flag.StringVar(&GConfig.Mysql.Host, "mysql.host", "10.4.41.80", "mysql host")
-	flag.IntVar(&GConfig.Mysql.Port, "mysql.port", 33071, "mysql port")
-	flag.StringVar(&GConfig.Mysql.Db, "mysql.db", "redha", "mysql db")
 	flag.Parse()
 }
 

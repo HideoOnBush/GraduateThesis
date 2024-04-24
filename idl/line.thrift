@@ -2,6 +2,11 @@ namespace go line
 
 include "base.thrift"
 
+struct SparkResult {
+  1:string name;
+  2:i64 point;
+}
+
 struct Line {
   1:string docId;
   2:i64 docVersion;
@@ -16,6 +21,7 @@ struct Line {
   11:string dependence;
   12:base.Timestamp lastFoundTime;
   13:base.Timestamp firstFoundTime;
+  14:i64 visitCount
 }
 
 struct LineReq {
@@ -60,6 +66,10 @@ struct ChangeDependenceWithRelationReq {
 
 struct Indicator {
   1: bool isCycle
+  2: i64  coreServicesNum
+  3: i64  strongRelationsNum
+  4: i64  servicesNum
+  5: i64  relationsNum
 }
 
 struct TopologyIndicatorResp {
@@ -70,11 +80,26 @@ struct TopologyIndicatorResp {
 
 
 struct TopologyIndicatorReq {
-  1: string scene(api.body="source");
+  1: string scene(api.body="scene");
 }
 
+struct LineRank {
+    1:string name;
+    2:i64 rank;
+}
+
+struct GetRankResp {
+    1: i64 code;
+    2: list<LineRank> data;
+    3: string message;
+}
+
+struct GetRankReq {
+    1:string scene
+}
 
 service LineService {
+  GetRankResp GetRank(1: GetRankReq request) (api.get="/api/line/get_rank")
   LineResp Query(1: LineReq request) (api.get="/api/line/query")
   base.SampleResp ChangeDependence(1: ChangeDependenceWithRelationReq request) (api.post="/api/line/change-dependence")
   base.SampleResp Bulk(1: LineBulkReq request) (api.post="/api/line/bulk")

@@ -21,6 +21,7 @@ func Register(r *server.Hertz) {
 		_api := root.Group("/api", _apiMw()...)
 		{
 			_neo_node := _api.Group("/neo_node", _neo_nodeMw()...)
+			_neo_node.GET("/empty_neo", append(_emptyneoMw(), neoNode.EmptyNeo)...)
 			_neo_node.GET("/es_to_neo", append(_estoneoMw(), neoNode.EsToNeo)...)
 		}
 	}

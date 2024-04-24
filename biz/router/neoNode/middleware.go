@@ -25,3 +25,8 @@ func _estoneoMw() []app.HandlerFunc {
 	// your code...
 	return nil
 }
+
+func _emptyneoMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}

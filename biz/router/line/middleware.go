@@ -45,3 +45,8 @@ func _topologyanalyseMw() []app.HandlerFunc {
 	// your code...
 	return nil
 }
+
+func _getrankMw() []app.HandlerFunc {
+	// your code...
+	return nil
+}

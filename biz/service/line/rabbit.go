@@ -21,6 +21,7 @@ func (l *Line) InitializeConsumers() {
 	limitC := make(chan struct{}, num)
 	defer close(limitC)
 	for {
+		//constrict the concurrency
 		limitC <- struct{}{}
 		go func() {
 			defer func() {

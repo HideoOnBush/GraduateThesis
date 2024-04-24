@@ -26,10 +26,28 @@ func EsToNeo(ctx context.Context, c *app.RequestContext) {
 	resp := new(base.SampleResp)
 	if err != nil {
 		resp.Code = 1
-		resp.Data = false
+		resp.Success = false
 		resp.Message = err.Error()
 	} else {
-		resp.Data = true
+		resp.Success = true
+		resp.Code = 0
+		resp.Message = ""
+	}
+	c.JSON(consts.StatusOK, resp)
+}
+
+// EmptyNeo .
+// @router /api/neo_node/empty_neo [GET]
+func EmptyNeo(ctx context.Context, c *app.RequestContext) {
+	var err error
+	err = service.NeoNode.DeleteAllNodes(ctx)
+	resp := new(base.SampleResp)
+	if err != nil {
+		resp.Code = 1
+		resp.Success = false
+		resp.Message = err.Error()
+	} else {
+		resp.Success = true
 		resp.Code = 0
 		resp.Message = ""
 	}

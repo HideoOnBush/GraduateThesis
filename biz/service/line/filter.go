@@ -46,7 +46,10 @@ const (
             },
             "lastFoundTime": {
                 "type": "date"
-            }
+            },
+			"visitCount":{
+				"type": "integer"
+			}
         }
     }
 }`
